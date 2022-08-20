@@ -19,7 +19,7 @@ public class User {
     private String userEmail;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", columnDefinition = "enum('admin', 'lecturer', 'student')")
     private RoleType role;
 
     @Column(name = "createdOn", insertable = false)

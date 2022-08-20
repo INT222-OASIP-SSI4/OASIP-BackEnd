@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -39,19 +41,35 @@ public class UserService {
     }
 
     public User save(CreateUserDTO createUserDTO) {
+        if(checkUniqueName(null, createUserDTO.getUserName()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
+        if(checkUniqueEmail(null, createUserDTO.getUserEmail()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is not unique");
         User newUser = modelMapper.map(createUserDTO, User.class);
         newUser.setId(null);
+        newUser.setUserName(newUser.getUserName().trim());
+        newUser.setUserEmail(newUser.getUserEmail().trim());
         return repository.saveAndFlush(newUser);
     }
 
     private User mapUser(User existingUser, UpdateUserDTO updateUser) {
-        existingUser.setUserName(updateUser.getUserName());
-        existingUser.setUserEmail(updateUser.getUserEmail());
+        if(updateUser.getUserName() != null){
+        existingUser.setUserName(updateUser.getUserName().trim());
+        }
+        if(updateUser.getUserEmail() != null){
+        existingUser.setUserEmail(updateUser.getUserEmail().trim());
+        }
+        if(updateUser.getRole() != null){
         existingUser.setRole(updateUser.getRole());
+        }
         return existingUser;
     }
 
     public User update(UpdateUserDTO updateUserDTO, Integer userId) {
+        if(checkUniqueName(userId, updateUserDTO.getUserName()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
+        if(checkUniqueEmail(userId, updateUserDTO.getUserEmail()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is not unique");
         User user = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 userId + " doesn't exist"));
         User updatedUser = mapUser(user, updateUserDTO);
@@ -61,5 +79,21 @@ public class UserService {
     public void delete(Integer userId){
         repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, userId + " doesn't exist"));
         repository.deleteById(userId);
+    }
+
+    private boolean checkUniqueName(Integer userId, String name) {
+        Optional<User> user = repository.findByUserName(name);
+        if(userId != null && user.isPresent()) {
+            return !Objects.equals(user.get().getId(), userId);
+        }
+        return user.isPresent();
+    }
+
+    private boolean checkUniqueEmail(Integer userId, String email) {
+        Optional<User> user = repository.findByUserEmail(email);
+        if(userId != null && user.isPresent()) {
+            return !Objects.equals(user.get().getId(), userId);
+        }
+        return user.isPresent();
     }
 }
