@@ -22,8 +22,9 @@ public class CreateUserDTO {
 
     @Email(message = "userEmail is invalid email, pls input correct email form")
     @NotNull(message = "userEmail must not null")
-    @Size(min = 1,max = 50, message = "userEmail is must not more than 50")
+    @Size(min = 1,max = 100, message = "userEmail is must not more than 50")
     private String userEmail;
 
+    @NotNull(message = "role must not null")
     private RoleType role;
 }
