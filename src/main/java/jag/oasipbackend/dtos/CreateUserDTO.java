@@ -1,5 +1,6 @@
 package jag.oasipbackend.dtos;
 
+import jag.oasipbackend.validators.EnumValidator;
 import jag.oasipbackend.enums.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,5 +27,6 @@ public class CreateUserDTO {
     private String userEmail;
 
     @NotNull(message = "role must not null")
-    private RoleType role;
+    @EnumValidator(enumClass = RoleType.class)
+    private String role;
 }

@@ -18,9 +18,9 @@ public class User {
     @Column(name = "userEmail", nullable = false, length = 50, unique = true)
     private String userEmail;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", columnDefinition = "enum('admin', 'lecturer', 'student')")
-    private RoleType role;
+
+    @Column(name = "role")
+    private String role;
 
     @Column(name = "createdOn", insertable = false)
     private Instant createdOn;
@@ -44,11 +44,11 @@ public class User {
         this.createdOn = createdOn;
     }
 
-    public RoleType getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(RoleType role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
@@ -75,4 +75,5 @@ public class User {
     public void setId(Integer id) {
         this.id = id;
     }
+
 }

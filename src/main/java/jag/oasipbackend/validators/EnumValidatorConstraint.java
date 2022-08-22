@@ -1,10 +1,15 @@
-package jag.oasipbackend.controllers;
+package jag.oasipbackend.validators;
 
-import jag.oasipbackend.controllers.EnumValidator;
+import jag.oasipbackend.enums.RoleType;
+import jag.oasipbackend.validators.EnumValidator;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

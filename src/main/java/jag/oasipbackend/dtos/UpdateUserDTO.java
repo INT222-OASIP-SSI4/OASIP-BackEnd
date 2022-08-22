@@ -1,6 +1,7 @@
 package jag.oasipbackend.dtos;
 
 import jag.oasipbackend.enums.RoleType;
+import jag.oasipbackend.validators.EnumValidator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,5 +26,7 @@ public class UpdateUserDTO {
     @Size(min = 1,max = 50, message = "userEmail is must not more than 50")
     private String userEmail;
 
-    private RoleType role;
+    @EnumValidator(enumClass = RoleType.class)
+    @NotNull(message = "role must not null")
+    private String role;
 }

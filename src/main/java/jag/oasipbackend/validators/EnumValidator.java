@@ -1,4 +1,6 @@
-package jag.oasipbackend.controllers;
+package jag.oasipbackend.validators;
+
+import jag.oasipbackend.enums.RoleType;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

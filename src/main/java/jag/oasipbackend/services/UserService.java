@@ -44,7 +44,7 @@ public class UserService {
         if(checkUniqueName(null, createUserDTO.getUserName()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
         if(checkUniqueEmail(null, createUserDTO.getUserEmail()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is not unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This email has already been used.");
         User newUser = modelMapper.map(createUserDTO, User.class);
         newUser.setId(null);
         newUser.setUserName(newUser.getUserName().trim());
@@ -69,7 +69,7 @@ public class UserService {
         if(checkUniqueName(userId, updateUserDTO.getUserName()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
         if(checkUniqueEmail(userId, updateUserDTO.getUserEmail()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is not unique");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This email has already been used.");
         User user = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 userId + " doesn't exist"));
         User updatedUser = mapUser(user, updateUserDTO);
