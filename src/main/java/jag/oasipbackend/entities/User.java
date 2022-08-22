@@ -25,7 +25,7 @@ public class User {
     @Column(name = "createdOn", insertable = false)
     private Instant createdOn;
 
-    @Column(name = "updatedOn", updatable = false)
+    @Column(name = "updatedOn", insertable = false, updatable = false)
     private Instant updatedOn;
 
     public Instant getUpdatedOn() {
