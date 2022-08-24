@@ -41,6 +41,8 @@ public class UserService {
     }
 
     public User save(CreateUserDTO createUserDTO) {
+        if(checkUniqueName(null, createUserDTO.getUserName().trim()) && checkUniqueEmail(null, createUserDTO.getUserEmail().trim()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name and email is not unique");
         if(checkUniqueName(null, createUserDTO.getUserName().trim()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
         if(checkUniqueEmail(null, createUserDTO.getUserEmail().trim()))
@@ -68,6 +70,8 @@ public class UserService {
     public User update(UpdateUserDTO updateUserDTO, Integer userId) {
         User oldUser = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 userId + " doesn't exist"));
+        if(checkUniqueName(userId, updateUserDTO.getUserName().trim()) && checkUniqueEmail(userId, updateUserDTO.getUserEmail().trim()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name and email is not unique");
         if(checkUniqueName(userId, updateUserDTO.getUserName().trim()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
         if(checkUniqueEmail(userId, updateUserDTO.getUserEmail().trim()))
