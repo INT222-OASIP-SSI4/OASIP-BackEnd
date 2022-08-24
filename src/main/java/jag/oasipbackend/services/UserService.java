@@ -48,32 +48,38 @@ public class UserService {
         User newUser = modelMapper.map(createUserDTO, User.class);
         newUser.setId(null);
         newUser.setUserName(newUser.getUserName().trim());
-        newUser.setUserEmail(newUser.getUserEmail().trim());
         return repository.saveAndFlush(newUser);
     }
 
     private User mapUser(User existingUser, UpdateUserDTO updateUser) {
-        if(updateUser.getUserName() != null){
+        if(updateUser.getUserName().trim() != null){
         existingUser.setUserName(updateUser.getUserName().trim());
         }
         if(updateUser.getUserEmail() != null){
-        existingUser.setUserEmail(updateUser.getUserEmail().trim());
+            updateUser.setUserEmail(updateUser.getUserEmail().trim());
+            existingUser.setUserEmail(updateUser.getUserEmail().trim());
         }
-        if(updateUser.getRole() != null){
-        existingUser.setRole(updateUser.getRole());
+        if(updateUser.getRole().trim() != null){
+        existingUser.setRole(updateUser.getRole().trim());
         }
         return existingUser;
     }
 
     public User update(UpdateUserDTO updateUserDTO, Integer userId) {
+        User oldUser = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                userId + " doesn't exist"));
         if(checkUniqueName(userId, updateUserDTO.getUserName().trim()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is not unique");
         if(checkUniqueEmail(userId, updateUserDTO.getUserEmail().trim()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This email has already been used.");
+        if(checkDataChange(userId, updateUserDTO.getUserName().trim(), updateUserDTO.getUserEmail().trim(), updateUserDTO.getRole().trim()))
+            return oldUser;
         User user = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 userId + " doesn't exist"));
         User updatedUser = mapUser(user, updateUserDTO);
+        updatedUser.setUserEmail(updateUserDTO.getUserEmail());
         return repository.saveAndFlush(updatedUser);
+
     }
 
     public void delete(Integer userId){
@@ -95,5 +101,14 @@ public class UserService {
             return !Objects.equals(user.get().getId(), userId);
         }
         return user.isPresent();
+    }
+
+    private boolean checkDataChange(Integer userId, String name, String email, String role) {
+        User user = repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                userId + " doesn't exist"));
+        if(user.getUserName() == name.trim() && user.getUserEmail() == email.trim() && user.getRole() == role.trim()){
+            return true;
+        }
+        return false;
     }
 }

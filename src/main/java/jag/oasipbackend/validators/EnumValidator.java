@@ -20,7 +20,7 @@ import static java.lang.annotation.ElementType.*;
 @ReportAsSingleViolation
 public @interface EnumValidator {
     Class<? extends Enum<?>> enumClass();
-    String message() default "must be any of enum {enumClass}";
+    String message() default "must be any of enum [admin, lecturer, student]";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

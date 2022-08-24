@@ -49,7 +49,7 @@ public class User {
     }
 
     public void setRole(String role) {
-        this.role = role;
+        this.role = role.trim();
     }
 
     public String getUserEmail() {
@@ -57,7 +57,7 @@ public class User {
     }
 
     public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+        this.userEmail = userEmail.trim();
     }
 
     public String getUserName() {
