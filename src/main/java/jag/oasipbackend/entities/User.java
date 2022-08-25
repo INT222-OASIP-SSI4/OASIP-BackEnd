@@ -18,6 +18,8 @@ public class User {
     @Column(name = "userEmail", nullable = false, length = 50, unique = true)
     private String userEmail;
 
+    @Column(name = "password", nullable = false, length = 90)
+    private String password;
 
     @Column(name = "role")
     private String role;
@@ -76,4 +78,11 @@ public class User {
         this.id = id;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

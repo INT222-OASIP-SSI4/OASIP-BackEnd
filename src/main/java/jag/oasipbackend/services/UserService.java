@@ -29,6 +29,9 @@ public class UserService {
     @Autowired
     private ListMapper listMapper;
 
+    @Autowired
+    private PasswordService passwordService;
+
     public List<UserDTO> findAll() {
         List<User> users = repository.findAll(Sort.by("userName"));
         return listMapper.mapList(users, UserDTO.class, modelMapper);
@@ -50,6 +53,7 @@ public class UserService {
         User newUser = modelMapper.map(createUserDTO, User.class);
         newUser.setId(null);
         newUser.setUserName(newUser.getUserName().trim());
+        newUser.setPassword(passwordService.securePassword(newUser.getPassword()));
         return repository.saveAndFlush(newUser);
     }
 
