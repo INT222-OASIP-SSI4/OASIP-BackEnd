@@ -2,21 +2,26 @@ package jag.oasipbackend.services;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
-import jag.oasipbackend.controllers.PasswordConfig;
+import jag.oasipbackend.configurations.PasswordConfig;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PasswordService {
 
     private PasswordConfig passwordConfig;
+    private Argon2 argon2;
 
     public PasswordService(PasswordConfig passwordConfig) {
-        this.passwordConfig = passwordConfig;
+        this.passwordConfig = passwordConfig; argon2 = getArgon2Instance();
     }
 
     public String securePassword(String password){
         Argon2 argon2 = getArgon2Instance();
         return argon2.hash(passwordConfig.getIterations(), passwordConfig.getMemory(), passwordConfig.getParrallelism(), password.toCharArray());
+    }
+
+    public boolean validatePassword(String hash, String password){
+        return argon2.verify(hash, password.toCharArray());
     }
 
     private Argon2 getArgon2Instance() {

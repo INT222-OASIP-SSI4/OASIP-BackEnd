@@ -1,4 +1,4 @@
-package jag.oasipbackend.controllers;
+package jag.oasipbackend.configurations;
 
 import lombok.Getter;
 import lombok.Setter;

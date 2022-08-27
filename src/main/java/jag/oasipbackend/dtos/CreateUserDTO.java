@@ -22,6 +22,12 @@ public class CreateUserDTO {
     @Size(min = 1,max = 100,message = "userName must have length between 1-100")
     private String userName;
 
+    @NotNull(message = "password must not null")
+    @NotBlank(message = "password must not null")
+    @NotEmpty(message = "password must not null")
+    @Size(min = 8,max = 14,message = "password must have length between 8-14")
+    private String password;
+
     @NotNull(message = "userEmail must not null")
     @NotBlank(message = "userEmail must not null")
     @NotEmpty(message = "userEmail must not null")
