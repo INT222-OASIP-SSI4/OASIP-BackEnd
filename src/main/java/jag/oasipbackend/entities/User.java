@@ -2,7 +2,6 @@ package jag.oasipbackend.entities;
 
 import javax.persistence.*;
 import java.time.Instant;
-import jag.oasipbackend.enums.RoleType;
 
 @Entity
 @Table(name = "users")
@@ -18,7 +17,7 @@ public class User {
     @Column(name = "userEmail", nullable = false, length = 50, unique = true)
     private String userEmail;
 
-    @Column(name = "password", nullable = false, length = 14)
+    @Column(name = "password", nullable = false, length = 100)
     private String password;
 
     @Column(name = "role")
