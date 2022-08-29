@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,8 +30,7 @@ public class UserService {
     @Autowired
     private ListMapper listMapper;
 
-    @Autowired
-    private PasswordService passwordService;
+    private Argon2PasswordEncoder argon2 = new Argon2PasswordEncoder(8,14,1,65536,10);
 
     public List<UserDTO> findAll() {
         List<User> users = repository.findAll(Sort.by("userName"));
@@ -53,7 +53,7 @@ public class UserService {
         User newUser = modelMapper.map(createUserDTO, User.class);
         newUser.setId(null);
         newUser.setUserName(newUser.getUserName().trim());
-        newUser.setPassword(passwordService.securePassword(newUser.getPassword()));
+        newUser.setPassword(argon2.encode(newUser.getPassword()));
         return repository.saveAndFlush(newUser);
     }
 
