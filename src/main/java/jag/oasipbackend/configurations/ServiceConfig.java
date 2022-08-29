@@ -19,6 +19,6 @@ public class ServiceConfig extends WebSecurityConfigurerAdapter {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setExposedHeaders(List.of("Authorization"));
 
-        http.authorizeRequests().antMatchers("/**").permitAll().anyRequest().authenticated().and().csrf().disable();
+        http.csrf().disable().httpBasic().disable();
     }
 }
