@@ -30,12 +30,14 @@ public class UserController {
     public UserDetailDTO getUser(@PathVariable Integer userId) { return service.findById(userId); }
 
     @PostMapping("")
+    @CrossOrigin(origins = "*")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<User> save(@Valid @RequestBody CreateUserDTO newUser){
         User response = service.save(newUser);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @CrossOrigin(origins = "*")
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(@Valid @RequestBody UpdateUserDTO updateUserDTO,
                                              @PathVariable Integer userId) {
