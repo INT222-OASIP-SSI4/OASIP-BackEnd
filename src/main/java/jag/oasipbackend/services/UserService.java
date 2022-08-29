@@ -1,9 +1,6 @@
 package jag.oasipbackend.services;
 
-import jag.oasipbackend.dtos.CreateUserDTO;
-import jag.oasipbackend.dtos.UpdateUserDTO;
-import jag.oasipbackend.dtos.UserDTO;
-import jag.oasipbackend.dtos.UserDetailDTO;
+import jag.oasipbackend.dtos.*;
 import jag.oasipbackend.entities.User;
 import jag.oasipbackend.repositories.UserRepository;
 import jag.oasipbackend.utils.ListMapper;
@@ -93,6 +90,19 @@ public class UserService {
     public void delete(Integer userId){
         repository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, userId + " doesn't exist"));
         repository.deleteById(userId);
+    }
+
+    public UserMatchDTO checkMatch(UserMatchDTO userMatchCheck){
+        if(repository.existsByUserEmail(userMatchCheck.getUserEmail())) {
+            Optional<User> user = repository.findByUserEmail(userMatchCheck.getUserEmail());
+            if(argon2.matches(userMatchCheck.getPassword(), user.get().getPassword())){
+                throw new ResponseStatusException(HttpStatus.OK, "Password is Match");
+            }else {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password doesn't Match");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email doesn't exist");
+        }
     }
 
     private boolean checkUniqueName(Integer userId, String name) {

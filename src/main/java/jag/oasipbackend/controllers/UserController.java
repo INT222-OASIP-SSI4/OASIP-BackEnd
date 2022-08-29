@@ -50,4 +50,11 @@ public class UserController {
     public void delete(@PathVariable Integer userId) {
         service.delete(userId);
     }
+
+    @PostMapping("/match")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserMatchDTO matchUser(@Valid @RequestBody UserMatchDTO userMatchDTO){
+        return service.checkMatch(userMatchDTO);
+    }
+
 }
