@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: jag.oasipbackend.OasipBackendApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 25.572 s - in jag.oasipbackend.OasipBackendApplicationTests

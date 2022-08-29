@@ -19,7 +19,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setExposedHeaders(List.of("Authorization"));
 
-        http.authorizeRequests().antMatchers("*").permitAll().anyRequest()
+        http.authorizeRequests().antMatchers("/**").permitAll().anyRequest()
                 .authenticated().and().csrf().disable().cors().configurationSource(request -> corsConfiguration);
 
     }
