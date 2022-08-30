@@ -40,7 +40,7 @@ public class UserService {
         return modelMapper.map(user, UserDetailDTO.class);
     }
 
-    public User save(CreateUserDTO createUserDTO) {
+    public UserDTO save(CreateUserDTO createUserDTO) {
         if(checkUniqueName(null, createUserDTO.getUserName().trim()) && checkUniqueEmail(null, createUserDTO.getUserEmail().trim()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name and email is not unique");
         if(checkUniqueName(null, createUserDTO.getUserName().trim()))
@@ -51,7 +51,8 @@ public class UserService {
         newUser.setId(null);
         newUser.setUserName(newUser.getUserName().trim());
         newUser.setPassword(argon2.encode(newUser.getPassword()));
-        return repository.saveAndFlush(newUser);
+        repository.saveAndFlush(newUser);
+        return modelMapper.map(newUser, UserDTO.class);
     }
 
     private User mapUser(User existingUser, UpdateUserDTO updateUser) {

@@ -1,9 +1,9 @@
 package jag.oasipbackend.controllers;
 
 import jag.oasipbackend.dtos.*;
-import jag.oasipbackend.entities.Event;
 import jag.oasipbackend.entities.User;
 import jag.oasipbackend.repositories.UserRepository;
+import jag.oasipbackend.responses.ResponseHandler;
 import jag.oasipbackend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,9 +32,13 @@ public class UserController {
     @PostMapping("")
     @CrossOrigin(origins = "*")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<User> save(@Valid @RequestBody CreateUserDTO newUser){
-        User response = service.save(newUser);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<Object> save(@Valid @RequestBody CreateUserDTO newUser) {
+        try {
+            UserDTO response = service.save(newUser);
+            return ResponseHandler.generateResponse("Successfully added data!", HttpStatus.OK, response);
+        } catch (Exception e) {
+            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.MULTI_STATUS, null);
+        }
     }
 
     @CrossOrigin(origins = "*")
