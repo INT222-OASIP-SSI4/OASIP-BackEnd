@@ -11,7 +11,7 @@ import javax.validation.constraints.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserMatchDTO {
+public class UserLoginDTO {
 
     private String userName;
 

@@ -132,7 +132,7 @@ public class UserService {
 //        }
 //    }
 
-    public ResponseEntity checkMatch(UserMatchDTO userMatchCheck, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception {
+    public ResponseEntity userLogin(UserLoginDTO userMatchCheck, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception {
         Map<String, String> errorMap = new HashMap<>();
         String status;
 

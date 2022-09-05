@@ -53,7 +53,7 @@ public class UserController {
         return service.findById(userId);
     }
 
-    @PostMapping("")
+    @PostMapping("/register")
     @CrossOrigin(origins = "*")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> save(@Valid @RequestBody CreateUserDTO newUser) {
@@ -99,10 +99,10 @@ public class UserController {
     }
 
 
-    @PostMapping("/match")
+    @PostMapping("/login")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity matchUser(@Valid @RequestBody UserMatchDTO userMatchDTO, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception{
-        return service.checkMatch(userMatchDTO, httpServletResponse, request);
+    public ResponseEntity userLogin(@Valid @RequestBody UserLoginDTO userMatchDTO, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception{
+        return service.userLogin(userMatchDTO, httpServletResponse, request);
     }
 
 }
