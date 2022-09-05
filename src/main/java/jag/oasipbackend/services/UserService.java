@@ -1,20 +1,30 @@
 package jag.oasipbackend.services;
 
+import jag.oasipbackend.configurations.JwtTokenUtil;
 import jag.oasipbackend.dtos.*;
 import jag.oasipbackend.entities.User;
+import jag.oasipbackend.models.JwtResponse;
 import jag.oasipbackend.repositories.UserRepository;
+import jag.oasipbackend.responses.ResponseErrorHandler;
 import jag.oasipbackend.utils.ListMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import javax.servlet.http.HttpServletResponse;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -26,6 +36,22 @@ public class UserService {
 
     @Autowired
     private ListMapper listMapper;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private JwtUserDetailsService userDetailsService;
+
+    @Autowired
+    public AuthenticationManager authenticationManager;
+
+    @Autowired
+    public UserRepository userRepository;
+
+    @Autowired
+    private Argon2PasswordEncoder argon2PasswordEncoder;
+
 
     private Argon2PasswordEncoder argon2 = new Argon2PasswordEncoder(8,14,1,65536,10);
 
@@ -93,19 +119,67 @@ public class UserService {
         repository.deleteById(userId);
     }
 
-    public UserMatchDTO checkMatch(UserMatchDTO userMatchCheck){
+//    public UserMatchDTO checkMatch(UserMatchDTO userMatchCheck){
+//        if(repository.existsByUserEmail(userMatchCheck.getUserEmail())) {
+//            Optional<User> user = repository.findByUserEmail(userMatchCheck.getUserEmail());
+//            if(argon2.matches(userMatchCheck.getPassword(), user.get().getPassword())){
+//                throw new ResponseStatusException(HttpStatus.OK, "Password is Match");
+//            }else {
+//                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password doesn't Match");
+//            }
+//        } else {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email doesn't exist");
+//        }
+//    }
+
+    public ResponseEntity checkMatch(UserMatchDTO userMatchCheck, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception {
+        Map<String, String> errorMap = new HashMap<>();
+        String status;
+
         if(repository.existsByUserEmail(userMatchCheck.getUserEmail())) {
             Optional<User> user = repository.findByUserEmail(userMatchCheck.getUserEmail());
-            if(argon2.matches(userMatchCheck.getPassword(), user.get().getPassword())){
-                throw new ResponseStatusException(HttpStatus.OK, "Password is Match");
-            }else {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password doesn't Match");
+            if (argon2.matches(userMatchCheck.getPassword(), user.get().getPassword())) {
+                authenticate(userMatchCheck.getUserEmail(), userMatchCheck.getPassword());
+                authenticate(userMatchCheck.getUserEmail(), userMatchCheck.getPassword());
+
+                final UserDetails userDetails = userDetailsService
+                        .loadUserByUsername(userMatchCheck.getUserEmail());
+
+                final String token = jwtTokenUtil.generateToken(userDetails);
+
+                return ResponseEntity.ok(new JwtResponse(token));
+//                throw new ResponseStatusException(HttpStatus.OK, "Password Matched");
+            } else {
+                errorMap.put("message", "Password NOT Matched");
+                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                status = HttpStatus.UNAUTHORIZED.toString();
+//            }
+
             }
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email doesn't exist");
+        }else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email DOES NOT exist");
         }
+
+        ResponseErrorHandler errors = new ResponseErrorHandler(
+                Date.from(Instant.now()),
+                httpServletResponse.getStatus(),
+                status,
+                errorMap.get("message"),
+                request.getRequest().getRequestURI());
+        return ResponseEntity.status(httpServletResponse.getStatus()).body(errors);
+
     }
 
+    private void authenticate(String email,String password)throws Exception{
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
+        } catch ( DisabledException ex){
+            throw new Exception("USER_DISABLED",ex);
+        }catch (BadCredentialsException ex){
+            throw new Exception("INVALID_CREDENTIALS",ex);
+        }
+
+    }
     private boolean checkUniqueName(Integer userId, String name) {
         Optional<User> user = repository.findByUserName(name);
         if(userId != null && user.isPresent()) {

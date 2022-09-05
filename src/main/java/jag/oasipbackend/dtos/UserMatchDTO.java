@@ -5,10 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 
 @Getter
 @Setter
@@ -27,6 +24,7 @@ public class UserMatchDTO {
     @NotBlank(message = "userEmail must not null")
     @NotEmpty(message = "userEmail must not null")
     @Email(message = "userEmail is invalid email, please input correct email form")
+    @Size(min = 1,max = 50, message = "userEmail is must not more than 50")
     private String userEmail;
 
 }
