@@ -24,7 +24,7 @@ public class UserLoginDTO {
     @NotBlank(message = "userEmail must not null")
     @NotEmpty(message = "userEmail must not null")
     @Email(message = "userEmail is invalid email, please input correct email form")
-    @Size(min = 1,max = 50, message = "userEmail is must not more than 50")
+    @Size(max = 50, message = "userEmail is must not more than 50")
     private String userEmail;
 
 }
