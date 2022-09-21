@@ -98,7 +98,6 @@ public class UserController {
         }
     }
 
-
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity userLogin(@Valid @RequestBody UserLoginDTO userMatchDTO, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception{

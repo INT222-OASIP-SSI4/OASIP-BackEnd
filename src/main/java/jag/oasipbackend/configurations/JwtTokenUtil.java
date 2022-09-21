@@ -18,10 +18,16 @@ public class JwtTokenUtil implements Serializable {
 
     private static final long serialVersionUID = -2550185165626007488L;
 
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    public static final long JWT_TOKEN_VALIDITY = 30 * 60;
 
     @Value("${jwt.secret}")
     private String secret;
+
+    @Value("${jwt.expirationDateInMs}")
+    private Integer jwtExpirationInMs;
+
+    @Value("${jwt.refreshExpirationDateInMs}")
+    private Integer refreshExpirationDateInMs;
 
     //retrieve username from jwt token
     public String getUsernameFromToken(String token) {
@@ -43,7 +49,7 @@ public class JwtTokenUtil implements Serializable {
     }
 
     //check if the token has expired
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
@@ -52,6 +58,17 @@ public class JwtTokenUtil implements Serializable {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, userDetails.getUsername());
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        return refreshToken(claims, userDetails.getUsername());
+    }
+
+    public String refreshToken(Map<String, Object> claims, String subject){
+        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationDateInMs * 1000))
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
     //while creating the token -
