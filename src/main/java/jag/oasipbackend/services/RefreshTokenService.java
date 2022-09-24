@@ -6,9 +6,11 @@ import jag.oasipbackend.models.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Service
 public class RefreshTokenService {
     private final JwtTokenUtil jwtTokenUtill;
     private final JwtUserDetailsService jwtUserDetailsService;
@@ -27,7 +29,7 @@ public class RefreshTokenService {
         String refreshToken = jwtTokenUtill.generateRefreshToken(userDetails);
 //            String getRefreshTokenExpire = jwtTokenUtill.getExpirationDateFromToken(u)
         if (checkExpired(requestRefreshToken).equals(true)) {
-            return ResponseEntity.ok(new JwtResponse("Refresh Token Success", accessToken, refreshToken));
+            return ResponseEntity.ok(new JwtResponse("Refresh Token Success",accessToken,refreshToken));
         }
         return Response.response(HttpStatus.NOT_FOUND, "Can't find Refresh Token");
     }

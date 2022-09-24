@@ -147,7 +147,9 @@ public class UserService {
 
                 final String token = jwtTokenUtil.generateToken(userDetails);
 
-                return ResponseEntity.ok(new JwtResponse(token));
+                final String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+
+                return ResponseEntity.ok(new JwtResponse("Login Success",token,refreshToken));
 //                throw new ResponseStatusException(HttpStatus.OK, "Password Matched");
             } else {
                 errorMap.put("message", "Password NOT Matched");
