@@ -4,10 +4,7 @@ import jag.oasipbackend.configurations.JwtTokenUtil;
 import jag.oasipbackend.dtos.CreateEventDTO;
 import jag.oasipbackend.dtos.EventDTO;
 import jag.oasipbackend.dtos.UpdateEventDTO;
-import jag.oasipbackend.entities.Event;
-import jag.oasipbackend.entities.EventCategory;
-import jag.oasipbackend.entities.User;
-import jag.oasipbackend.enums.RoleType;
+import jag.oasipbackend.entities.*;
 import jag.oasipbackend.repositories.EventCategoryRepository;
 import jag.oasipbackend.repositories.EventRepository;
 import jag.oasipbackend.repositories.UserRepository;
@@ -16,7 +13,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -51,14 +48,34 @@ public class EventService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public List<EventDTO> findAll() {
         List<Event> events = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
         return listMapper.mapList(events, EventDTO.class, modelMapper);
     }
 
-    public EventDTO findById(Integer eventId) {
-        Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                eventId + " doesn't exist"));
+    public EventDTO findById(Integer eventId, HttpServletRequest request) {
+        Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
+        String userEmail = getUserEmail(getRequestAccessToken(request));
+        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
+        if(userDetails != null){
+            Optional<User> user = userRepository.findByUserEmail(userEmail);
+            if (user.isPresent()) {
+                if((request.isUserInRole("ROLE_student")) && !event.getBookingEmail().equals(user.get().getUserEmail())) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete event which you didn't own");
+                }
+                if((request.isUserInRole("ROLE_lecturer")) && !Objects.equals(event.getEventCategory().getUser().getId(), user.get().getId())) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot access event that event category you didn't own");
+                }
+
+            }else{
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+        }else{
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
+        }
         return modelMapper.map(event, EventDTO.class);
     }
 
@@ -81,15 +98,31 @@ public class EventService {
         }else{
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
         }
-        Event e = modelMapper.map(createEventDTO, Event.class);
+        Event event = modelMapper.map(createEventDTO, Event.class);
         EventCategory ec = ecRepo.findById(createEventDTO.getEventCategoryId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, createEventDTO.getEventCategoryId() +
                         " does not exist !! "));
-        e.setId(null);
-        e.setEventDuration(ec.getEventDuration());
-        e.setEventCategory(ec);
-        validateOverlap(e);
-            return repository.saveAndFlush(e);
+        event.setId(null);
+        event.setEventDuration(ec.getEventDuration());
+        event.setEventCategory(ec);
+        validateOverlap(event);
+        Event createEvent = repository.saveAndFlush(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Hi " + createEvent.getBookingEmail() + ". Your event has been created.\n\n");
+        stringBuilder.append("Event Detail \n");
+        stringBuilder.append(" - Booking Name :" + createEvent.getBookingName() + "\n");
+        stringBuilder.append(" - Booking Email :" + createEvent.getBookingEmail() + "\n");
+        stringBuilder.append(" - Event Duration :" + createEvent.getEventDuration() + "\n");
+        if(event.getEventNotes() != null){
+            stringBuilder.append(" - Event Notes :" + createEvent.getEventNotes() + "\n");
+            stringBuilder.append(" - Event Category :" + ec.getEventCategoryName() + "\n");
+        try {
+            emailService.sendSimpleMessage(createEventDTO.getBookingEmail(),"New Event was created", stringBuilder.toString());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        }
+        return repository.saveAndFlush(event);
  }
 
     private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent) {
@@ -144,22 +177,24 @@ public class EventService {
     }
 
     public List<EventDTO> findAllEvent(HttpServletRequest request) {
-        List<Event> eventsList = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
-        String getUserEmail = getUserEmail(getRequestAccessToken(request));
-        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(getUserEmail);
-        if (userDetails != null && (request.isUserInRole("ROLE_student"))) {
-            List<Event> eventsListByEmail = repository.findByBookingEmail(getUserEmail);
-            return listMapper.mapList(eventsListByEmail, EventDTO.class, modelMapper);
-        }
-//        else if(userDetails != null && (request.isUserInRole("ROLE_lecturer"))){
-////            List<Events> eventsListByEmail = repository.findByBookingEmail(getUserEmail);
-//            List<Event> eventsListByCategoryOwner = repository.findEventsCategoryOwnerByEmail(getUserEmail);
-//
-//            return listMapper.mapList(eventsListByCategoryOwner , EventDTO.class,modelMapper);
-//
-//        }
-        return listMapper.mapList(eventsList, EventDTO.class, modelMapper);
 
+        String userEmail = getUserEmail(getRequestAccessToken(request));
+        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
+        if (userDetails != null) {
+            Optional<User> user = userRepository.findByUserEmail(userEmail);
+            if(user.isPresent()){
+                List<Event> eventsList = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
+
+                if((request.isUserInRole("ROLE_student")))
+                    eventsList = eventsList.stream().filter(event -> event.getBookingEmail().equals(userEmail)).collect(Collectors.toList());
+                if((request.isUserInRole("ROLE_lecturer")))
+                    eventsList = eventsList.stream().filter(event -> Objects.equals(event.getEventCategory().getUser().getId(), user.get().getId())).collect(Collectors.toList());
+                return listMapper.mapList(eventsList, EventDTO.class, modelMapper);
+            }else {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
+            }
+        }
+        return null;
     }
 
     public String getRequestAccessToken (HttpServletRequest request){

@@ -22,6 +22,10 @@ public class EventCategory {
     @Column(name = "eventDuration", nullable = false)
     private Integer eventDuration;
 
+    @ManyToOne
+    @JoinColumn(name = "userId", nullable = false)
+    private User user;
+
     @JsonIgnore
     @OneToMany(mappedBy = "eventCategory")
     private Set<Event> events = new LinkedHashSet<>();
@@ -57,4 +61,13 @@ public class EventCategory {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
 }

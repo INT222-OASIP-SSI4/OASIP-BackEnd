@@ -30,8 +30,8 @@ public class EventController {
 }
 
     @GetMapping("/{eventId}")
-    public EventDTO getEvent(@PathVariable Integer eventId) {
-        return service.findById(eventId);
+    public EventDTO getEvent(@PathVariable Integer eventId, HttpServletRequest httpServletRequest) {
+        return service.findById(eventId, httpServletRequest);
     }
 
     @PostMapping("")
