@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -24,8 +25,8 @@ public class EventController {
     private EventService service;
 
     @GetMapping("")
-    public List<EventDTO> getEvents(){
-       return service.findAll();
+    public List<EventDTO> getEvents(HttpServletRequest httpServletRequest){
+       return service.findAllEvent(httpServletRequest);
 }
 
     @GetMapping("/{eventId}")
@@ -35,22 +36,22 @@ public class EventController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Event> save(@Valid @RequestBody CreateEventDTO newEvent){
-        Event response = service.save(newEvent);
+    public ResponseEntity<Event> save(@Valid @RequestBody CreateEventDTO newEvent, HttpServletRequest httpServletRequest){
+        Event response = service.save(newEvent, httpServletRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{eventId}")
     public ResponseEntity<Event> updateEvent(@Valid @RequestBody UpdateEventDTO updateEventDTO,
-                                             @PathVariable Integer eventId) {
-        Event event = service.update(updateEventDTO, eventId);
+                                             @PathVariable Integer eventId, HttpServletRequest httpServletRequest) {
+        Event event = service.update(updateEventDTO, eventId, httpServletRequest);
         return new ResponseEntity<>(event, HttpStatus.OK);
     }
 
     @DeleteMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK)
-    public void delete(@PathVariable Integer eventId) {
-        service.delete(eventId);
+    public void delete(@PathVariable Integer eventId, HttpServletRequest httpServletRequest) {
+        service.delete(eventId, httpServletRequest);
     }
 
 }
