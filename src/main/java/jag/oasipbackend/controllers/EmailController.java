@@ -16,6 +16,6 @@ public class EmailController {
     @CrossOrigin(origins = "*")
     @GetMapping("/test")
     public void  sendEmail() {
-        service.sendSimpleMessage("kantapon.tantra@mail.kmutt.ac.th", "test", "test");
+        service.sendSimpleMessage("death.sites123@gmail.com", "test", "test");
     }
 }
