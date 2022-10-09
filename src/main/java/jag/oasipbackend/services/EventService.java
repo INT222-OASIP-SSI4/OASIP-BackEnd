@@ -7,6 +7,7 @@ import jag.oasipbackend.dtos.UpdateEventDTO;
 import jag.oasipbackend.entities.*;
 import jag.oasipbackend.repositories.EventCategoryRepository;
 import jag.oasipbackend.repositories.EventRepository;
+import jag.oasipbackend.repositories.UserCategoryRepository;
 import jag.oasipbackend.repositories.UserRepository;
 import jag.oasipbackend.utils.ListMapper;
 import org.modelmapper.ModelMapper;
@@ -20,9 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +50,9 @@ public class EventService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private UserCategoryRepository userCategoryRepository;
+
     public List<EventDTO> findAll() {
         List<Event> events = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
         return listMapper.mapList(events, EventDTO.class, modelMapper);
@@ -62,16 +64,17 @@ public class EventService {
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
         if(userDetails != null){
             Optional<User> user = userRepository.findByUserEmail(userEmail);
+            List<Integer> eventCategoryIdByOwner = ecRepo.findEventCategoryIdByOwner(user.get().getId());
             if (user.isPresent()) {
                 if((request.isUserInRole("ROLE_student")) && !event.getBookingEmail().equals(user.get().getUserEmail())) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot delete event which you didn't own");
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot see event which you didn't own");
                 }
-                if((request.isUserInRole("ROLE_lecturer")) && !Objects.equals(event.getEventCategory().getUser().getId(), user.get().getId())) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot access event that event category you didn't own");
+                if((request.isUserInRole("ROLE_lecturer")) && !eventCategoryIdByOwner.stream().anyMatch(event.getEventCategory().getId()::equals)) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot see event which you didn't own of category's event");
                 }
 
             }else{
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
             }
         }else{
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
@@ -184,11 +187,11 @@ public class EventService {
             Optional<User> user = userRepository.findByUserEmail(userEmail);
             if(user.isPresent()){
                 List<Event> eventsList = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
-
                 if((request.isUserInRole("ROLE_student")))
                     eventsList = eventsList.stream().filter(event -> event.getBookingEmail().equals(userEmail)).collect(Collectors.toList());
                 if((request.isUserInRole("ROLE_lecturer")))
-                    eventsList = eventsList.stream().filter(event -> Objects.equals(event.getEventCategory().getUser().getId(), user.get().getId())).collect(Collectors.toList());
+                    eventsList = repository.findAllByUserId(user.get().getId());
+
                 return listMapper.mapList(eventsList, EventDTO.class, modelMapper);
             }else {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
@@ -238,4 +241,5 @@ public class EventService {
             return true;
         return false;
     }
+
 }

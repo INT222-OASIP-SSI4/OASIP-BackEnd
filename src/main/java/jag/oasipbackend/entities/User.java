@@ -11,22 +11,23 @@ public class User {
     @Column(name = "userId", nullable = false)
     private Integer id;
 
-    @Column(name = "userName", nullable = false, length = 100, unique = true)
+    @Column(name = "userName", nullable = false, length = 100)
     private String userName;
 
-    @Column(name = "userEmail", nullable = false, length = 50, unique = true)
+    @Column(name = "userEmail", nullable = false, length = 50)
     private String userEmail;
 
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
-    @Column(name = "role")
+    @Lob
+    @Column(name = "role", nullable = false)
     private String role;
 
-    @Column(name = "createdOn", insertable = false)
+    @Column(name = "createdOn")
     private Instant createdOn;
 
-    @Column(name = "updatedOn", insertable = false, updatable = false)
+    @Column(name = "updatedOn")
     private Instant updatedOn;
 
     public Instant getUpdatedOn() {
@@ -50,7 +51,15 @@ public class User {
     }
 
     public void setRole(String role) {
-        this.role = role.trim();
+        this.role = role;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getUserEmail() {
@@ -58,7 +67,7 @@ public class User {
     }
 
     public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail.trim();
+        this.userEmail = userEmail;
     }
 
     public String getUserName() {
@@ -75,13 +84,5 @@ public class User {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

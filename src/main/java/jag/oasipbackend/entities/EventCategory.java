@@ -1,10 +1,9 @@
 package jag.oasipbackend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import javax.persistence.*;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "eventCategories")
@@ -22,13 +21,17 @@ public class EventCategory {
     @Column(name = "eventDuration", nullable = false)
     private Integer eventDuration;
 
-    @ManyToOne
-    @JoinColumn(name = "userId", nullable = false)
-    private User user;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "eventCategory")
-    private Set<Event> events = new LinkedHashSet<>();
+    @Column(name = "userId", nullable = false)
+    private Integer userId;
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 
     public Integer getEventDuration() {
         return eventDuration;
@@ -61,13 +64,4 @@ public class EventCategory {
     public void setId(Integer id) {
         this.id = id;
     }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
 }
