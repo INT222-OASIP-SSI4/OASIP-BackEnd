@@ -29,7 +29,7 @@ public class EventController {
        return service.findAllEvent(httpServletRequest);
     }
 
-    @GetMapping("/")
+    @GetMapping("/validate")
     public List<EventDTO> getEventForValidate(){
         return service.findAll();
     }
