@@ -84,9 +84,11 @@ public class EventService {
         return modelMapper.map(event, EventDTO.class);
     }
 
-    public Event save(CreateEventDTO createEventDTO) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = ((UserDetails) principal).getUsername();
+    public Event save(CreateEventDTO createEventDTO,HttpServletRequest request) {
+//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        UserDetails userDetails = (UserDetails) principal;
+//        String userEmail = userDetails.getUsername();
+        String userEmail = getUserEmail(getRequestAccessToken(request));
         Optional<User> user = userRepository.findByUserEmail(userEmail);
             if (user.isPresent()) {
                 if((user.get().getRole().equals(RoleType.student.name())) && !createEventDTO.getBookingEmail().equals(user.get().getUserEmail())) {
