@@ -27,7 +27,12 @@ public class EventController {
     @GetMapping("")
     public List<EventDTO> getEvents(HttpServletRequest httpServletRequest){
        return service.findAllEvent(httpServletRequest);
-}
+    }
+
+    @GetMapping("/")
+    public List<EventDTO> getEventForValidate(){
+        return service.findAll();
+    }
 
     @GetMapping("/{eventId}")
     public EventDTO getEvent(@PathVariable Integer eventId, HttpServletRequest httpServletRequest) {
