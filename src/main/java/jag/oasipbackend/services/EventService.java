@@ -5,6 +5,7 @@ import jag.oasipbackend.dtos.CreateEventDTO;
 import jag.oasipbackend.dtos.EventDTO;
 import jag.oasipbackend.dtos.UpdateEventDTO;
 import jag.oasipbackend.entities.*;
+import jag.oasipbackend.enums.RoleType;
 import jag.oasipbackend.repositories.EventCategoryRepository;
 import jag.oasipbackend.repositories.EventRepository;
 import jag.oasipbackend.repositories.UserCategoryRepository;
@@ -14,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -82,25 +84,22 @@ public class EventService {
         return modelMapper.map(event, EventDTO.class);
     }
 
-    public Event save(CreateEventDTO createEventDTO, HttpServletRequest request) {
-        String userEmail = getUserEmail(getRequestAccessToken(request));
-        UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
-        if(userDetails != null){
-            Optional<User> user = userRepository.findByUserEmail(userEmail);
+    public Event save(CreateEventDTO createEventDTO) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = ((UserDetails) principal).getUsername();
+        Optional<User> user = userRepository.findByUserEmail(userEmail);
             if (user.isPresent()) {
-                if((request.isUserInRole("ROLE_student")) && !createEventDTO.getBookingEmail().equals(user.get().getUserEmail())) {
+                if((user.get().getRole().equals(RoleType.student.name())) && !createEventDTO.getBookingEmail().equals(user.get().getUserEmail())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "booking email must be the same as the student's email.");
                 }
-                if((request.isUserInRole("ROLE_lecturer"))) {
+                if((user.get().getRole().equals(RoleType.lecturer.name()))) {
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only student, admin can delete event");
                 }
 
             }else{
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
             }
-        }else{
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
-        }
+
         Event event = modelMapper.map(createEventDTO, Event.class);
         EventCategory ec = ecRepo.findById(createEventDTO.getEventCategoryId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, createEventDTO.getEventCategoryId() +
