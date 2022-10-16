@@ -88,19 +88,16 @@ public class EventService {
 //        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 //        UserDetails userDetails = (UserDetails) principal;
 //        String userEmail = userDetails.getUsername();
-        String userEmail = getUserEmail(getRequestAccessToken(request));
-        Optional<User> user = userRepository.findByUserEmail(userEmail);
-            if (user.isPresent()) {
-                if((user.get().getRole().equals(RoleType.student.name())) && !createEventDTO.getBookingEmail().equals(user.get().getUserEmail())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "booking email must be the same as the student's email.");
+//        Optional<User> user = userRepository.findByUserEmail(userEmail);
+                if((request.isUserInRole("ROLE_student"))) {
+                    String userEmail = getEmailFromToken(request);
+                    if(!createEventDTO.getBookingEmail().equals(userEmail)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "booking email must be the same as the student's email.");
+                    }
                 }
-                if((user.get().getRole().equals(RoleType.lecturer.name()))) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only student, admin can delete event");
-                }
-
-            }else{
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-            }
+//                if((user.get().getRole().equals(RoleType.lecturer.name()))) {
+//                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only student, admin can delete event");
+//                }
 
         Event event = modelMapper.map(createEventDTO, Event.class);
         EventCategory ec = ecRepo.findById(createEventDTO.getEventCategoryId()).orElseThrow(
@@ -207,6 +204,10 @@ public class EventService {
 
     public String getUserEmail (String requestAccessToken){
         return jwtTokenUtill.getUsernameFromToken(requestAccessToken);
+    }
+
+    public String getEmailFromToken(HttpServletRequest httpServletRequest){
+        return getUserEmail(getRequestAccessToken(httpServletRequest));
     }
 
     private void validateOverlap(Event newEvent) {

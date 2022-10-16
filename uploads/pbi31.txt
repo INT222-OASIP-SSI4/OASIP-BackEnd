@@ -1,0 +1,51 @@
+--PBI 31 TEST_USER
+สมส่วน สุขศรี
+somsuan.s@kmutt.ac.th
+somsuans
+student
+
+สดใส สุขศรี
+sodsai.s@kmutt.ac.th
+lecturer
+--PBI 32 TEST_ADMIN
+
+event category-base; 
+event-base; 
+user-with-password-base;
+AUTHORIZE-EVENT-FUNCTIONS-ADMIN-test case data;
+
+สมเกียรติ ขยันเรียน TC-AUTHORIZE-EVENT-FUNCTIONS-ADMIN-1
+somkiat.kay@kmutt.ac.th
+Server-side Clinic
+24 October 2022 10:00 (ICT)
+
+24 October 2022 14:00 (ICT)
+ขอเปลี่ยนเป็นบ่ายสองเนื่องจากว่าติดธุระตอนเช้า
+
+--PBI 33 TEST_STUDENT
+
+event category-base; 
+event-base; 
+user-with-password-base;
+AUTHORIZE-EVENT-FUNCTIONS-STUDENT-test case data
+
+-- 1
+somkiat.kay@kmutt.ac.th
+somkiat.kay
+สมเกียรติ ขยันเรียน TC-AUTHORIZE-EVENT-FUNCTIONS-STUDENT-1
+somkiat.kay@kmutt.ac.th
+Server-side Clinic
+24 October 2022 10:00 (ICT)
+
+24 October 2022 14:00 (ICT)
+ขอเปลี่ยนเป็นบ่ายสองเนื่องจากว่าติดธุระตอนเช้า
+
+-- 2
+komkrid.rak@mail.kmutt.ac.th
+komkridrak
+
+detail?id=3
+edit?id=3
+
+-- 3
+Backend

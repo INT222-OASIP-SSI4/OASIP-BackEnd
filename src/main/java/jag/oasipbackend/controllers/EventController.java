@@ -9,6 +9,7 @@ import jag.oasipbackend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +42,7 @@ public class EventController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("!isAuthenticated() or hasAnyRole(\"admin\",\"student\")")
     public ResponseEntity<Event> save(@Valid @RequestBody CreateEventDTO newEvent, HttpServletRequest request){
         Event response = service.save(newEvent, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
