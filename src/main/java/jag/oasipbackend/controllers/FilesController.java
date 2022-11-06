@@ -29,7 +29,7 @@ public class FilesController {
         this.storageService = storageService;
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<String>> listUploadedFiles(Model model) throws IOException {
         List<String> pathList =  storageService.loadAll().map(
                         path -> MvcUriComponentsBuilder.fromMethodName(FilesController.class,
@@ -47,7 +47,7 @@ public class FilesController {
                 "attachment; filename=\"" + file.getFilename() + "\"").body(file);
     }
 
-    @PostMapping("/upload")
+    @PostMapping("")
     public String handleFileUpload(@RequestParam("file") MultipartFile file,
                                    RedirectAttributes redirectAttributes) {
 
