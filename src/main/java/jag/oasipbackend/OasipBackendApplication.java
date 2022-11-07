@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import javax.servlet.MultipartConfigElement;
+
 @SpringBootApplication
 @EnableConfigurationProperties(StorageProperties.class)
 public class OasipBackendApplication {

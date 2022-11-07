@@ -39,7 +39,7 @@ public class FilesController {
         return new ResponseEntity<>(pathList, HttpStatus.OK);
     }
 
-    @GetMapping("/files/{filename:.+}")
+    @GetMapping("/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
