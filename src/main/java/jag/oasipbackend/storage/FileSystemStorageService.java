@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import jag.oasipbackend.services.StorageService;
@@ -27,10 +26,10 @@ public class FileSystemStorageService implements StorageService {
 
     @Autowired
     public FileSystemStorageService(StorageProperties properties) {
-//        this.rootLocation = Paths.get(properties.getLocation()).toAbsolutePath().normalize();
         this.rootLocation = Paths.get(properties.getLocation()).toAbsolutePath().normalize();
+
         try{
-            Files.createDirectories(rootLocation);
+            Files.createDirectories(this.rootLocation);
         }catch (Exception ex){
             throw new StorageException("Could not create the directory where the uploaded files will be stored.", ex);
         }
@@ -39,31 +38,27 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void store(MultipartFile file) {
         try {
-            String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+            Files.createDirectories(rootLocation);
 
 //            Path destinationFile = this.rootLocation.resolve(
 //                            Paths.get(StringUtils.cleanPath(file.getOriginalFilename())))
 //                    .normalize().toAbsolutePath();
 
-            Path destinationFile = Paths.get(String.valueOf(this.rootLocation));
-
-            Files.createDirectories(destinationFile);
-
-
+            Path destinationFile = rootLocation.resolve(
+                            Paths.get(StringUtils.cleanPath(file.getOriginalFilename())));
 
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
             }
 
 
-//            if (!destinationFile.getParent().equals(rootLocation.toAbsolutePath())) {
-//                // This is a security check
-//                throw new StorageException(
-//                        "Cannot store file outside current directory.");
-//            }
+            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+                // This is a security check
+                throw new StorageException(
+                        "Cannot store file outside current directory.");
+            }
             try (InputStream inputStream = file.getInputStream()) {
-                Path targetLocation = destinationFile.resolve(fileName);
-                Files.copy(inputStream, targetLocation,
+                Files.copy(inputStream, destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
             }
         }
