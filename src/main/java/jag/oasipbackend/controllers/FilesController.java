@@ -49,8 +49,7 @@ public class FilesController {
     }
 
     @PostMapping("")
-    public ResponseEntity<ResponseMessage> handleFileUpload(@RequestParam("file") MultipartFile file,
-                                                            RedirectAttributes redirectAttributes) {
+    public ResponseEntity<ResponseMessage> handleFileUpload(@RequestParam("file") MultipartFile file) {
         String message = "";
         try {
             storageService.store(file);
