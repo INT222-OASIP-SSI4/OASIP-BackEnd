@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -43,8 +44,8 @@ public class EventController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("!isAuthenticated() or hasAnyRole(\"admin\",\"student\")")
-    public ResponseEntity<Event> save(@Valid @RequestBody CreateEventDTO newEvent, HttpServletRequest request){
-        Event response = service.save(newEvent, request);
+    public ResponseEntity<Event> save(@Valid @RequestBody CreateEventDTO newEvent, @RequestPart("file") MultipartFile multipartFile, HttpServletRequest request){
+        Event response = service.save(newEvent,multipartFile, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +54,9 @@ public class EventService {
     private EmailService emailService;
 
     @Autowired
+    private StorageService storageService;
+
+    @Autowired
     private UserCategoryRepository userCategoryRepository;
 
     public List<EventDTO> findAll() {
@@ -84,7 +88,7 @@ public class EventService {
         return modelMapper.map(event, EventDTO.class);
     }
 
-    public Event save(CreateEventDTO createEventDTO,HttpServletRequest request) {
+    public Event save(CreateEventDTO createEventDTO,MultipartFile multipartFile, HttpServletRequest request) {
 //        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 //        UserDetails userDetails = (UserDetails) principal;
 //        String userEmail = userDetails.getUsername();
@@ -108,6 +112,7 @@ public class EventService {
         event.setEventCategory(ec);
         validateOverlap(event);
         Event createEvent = repository.saveAndFlush(event);
+        storageService.store(multipartFile);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Hi " + createEvent.getBookingEmail() + ". Your event has been created.\n\n");
         stringBuilder.append("Event Detail \n");
