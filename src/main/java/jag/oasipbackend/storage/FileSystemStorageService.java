@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
+import java.util.Objects;
 
 import jag.oasipbackend.services.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +27,8 @@ public class FileSystemStorageService implements StorageService {
 
     @Autowired
     public FileSystemStorageService(StorageProperties properties) {
-        this.rootLocation = Paths.get(properties.getLocation()).toAbsolutePath().normalize();
+        this.rootLocation = Paths.get(properties.getLocation());
 
-        try{
-            Files.createDirectories(this.rootLocation);
-        }catch (Exception ex){
-            throw new StorageException("Could not create the directory where the uploaded files will be stored.", ex);
-        }
     }
 
     @Override
@@ -40,12 +36,8 @@ public class FileSystemStorageService implements StorageService {
         try {
             Files.createDirectories(rootLocation);
 
-//            Path destinationFile = this.rootLocation.resolve(
-//                            Paths.get(StringUtils.cleanPath(file.getOriginalFilename())))
-//                    .normalize().toAbsolutePath();
+                            Path destinationFile = this.rootLocation.resolve(Paths.get(Objects.requireNonNull(file.getOriginalFilename()))).normalize().toAbsolutePath();
 
-            Path destinationFile = rootLocation.resolve(
-                            Paths.get(StringUtils.cleanPath(file.getOriginalFilename())));
 
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
