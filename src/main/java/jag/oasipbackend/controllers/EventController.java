@@ -44,7 +44,7 @@ public class EventController {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("!isAuthenticated() or hasAnyRole(\"admin\",\"student\")")
-    public ResponseEntity<Event> save(@Valid @RequestPart("event") CreateEventDTO newEvent,@RequestPart("file") MultipartFile file, HttpServletRequest request){
+    public ResponseEntity<Event> save(@Valid @RequestPart("event") CreateEventDTO newEvent,@RequestPart(value = "file",required = false) MultipartFile file, HttpServletRequest request){
         Event response = service.save(newEvent, file, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

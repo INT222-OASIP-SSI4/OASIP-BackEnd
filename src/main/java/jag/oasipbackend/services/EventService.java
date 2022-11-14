@@ -5,7 +5,6 @@ import jag.oasipbackend.dtos.CreateEventDTO;
 import jag.oasipbackend.dtos.EventDTO;
 import jag.oasipbackend.dtos.UpdateEventDTO;
 import jag.oasipbackend.entities.*;
-import jag.oasipbackend.enums.RoleType;
 import jag.oasipbackend.repositories.EventCategoryRepository;
 import jag.oasipbackend.repositories.EventRepository;
 import jag.oasipbackend.repositories.UserCategoryRepository;
@@ -16,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -112,7 +110,7 @@ public class EventService {
         event.setEventDuration(ec.getEventDuration());
         event.setEventCategory(ec);
 //        fileSystemStorageService.store(file);
-        File file1 = fileSystemStorageService.store(file);
+        File file1 = sendFile(file);
         event.setFile(file1);
         validateOverlap(event);
         Event createEvent = repository.saveAndFlush(event);
@@ -133,6 +131,17 @@ public class EventService {
         }
         return repository.saveAndFlush(event);
  }
+
+    public File sendFile(MultipartFile multipartFile){
+        try {
+            if (multipartFile != null){
+                fileSystemStorageService.store(multipartFile);
+            }
+        }catch (Exception e){
+            System.out.println(e);
+        }
+        return null;
+    }
 
     private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent) {
         if (updateEvent.getEventStartTime() != null)
