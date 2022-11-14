@@ -1,6 +1,7 @@
 package jag.oasipbackend.dtos;
 
 import jag.oasipbackend.entities.EventCategory;
+import jag.oasipbackend.entities.File;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,4 +27,6 @@ public class EventDTO {
     private String eventNotes;
 
     private EventCategory eventCategory;
+
+    private File file;
 }

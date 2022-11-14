@@ -10,6 +10,7 @@ import jag.oasipbackend.repositories.EventCategoryRepository;
 import jag.oasipbackend.repositories.EventRepository;
 import jag.oasipbackend.repositories.UserCategoryRepository;
 import jag.oasipbackend.repositories.UserRepository;
+import jag.oasipbackend.storage.FileSystemStorageService;
 import jag.oasipbackend.utils.ListMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +55,9 @@ public class EventService {
     private EmailService emailService;
 
     @Autowired
+    private FileSystemStorageService fileSystemStorageService;
+
+    @Autowired
     private UserCategoryRepository userCategoryRepository;
 
     public List<EventDTO> findAll() {
@@ -84,7 +89,7 @@ public class EventService {
         return modelMapper.map(event, EventDTO.class);
     }
 
-    public Event save(CreateEventDTO createEventDTO,HttpServletRequest request) {
+    public Event save(CreateEventDTO createEventDTO, MultipartFile file, HttpServletRequest request) {
 //        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 //        UserDetails userDetails = (UserDetails) principal;
 //        String userEmail = userDetails.getUsername();
@@ -106,6 +111,9 @@ public class EventService {
         event.setId(null);
         event.setEventDuration(ec.getEventDuration());
         event.setEventCategory(ec);
+//        fileSystemStorageService.store(file);
+        File file1 = fileSystemStorageService.store(file);
+        event.setFile(file1);
         validateOverlap(event);
         Event createEvent = repository.saveAndFlush(event);
         StringBuilder stringBuilder = new StringBuilder();

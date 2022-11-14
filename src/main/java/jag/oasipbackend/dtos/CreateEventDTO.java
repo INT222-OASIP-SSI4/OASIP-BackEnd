@@ -32,4 +32,5 @@ public class CreateEventDTO {
 
     @NotNull(message = "eventCategoryId must not null")
     private Integer eventCategoryId;
+
 }

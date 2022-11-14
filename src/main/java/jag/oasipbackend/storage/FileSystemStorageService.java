@@ -10,17 +10,30 @@ import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 import java.util.Objects;
 
+import jag.oasipbackend.dtos.StoreFileDTO;
+import jag.oasipbackend.entities.File;
+import jag.oasipbackend.repositories.FileRepository;
 import jag.oasipbackend.services.StorageService;
+import jag.oasipbackend.utils.ListMapper;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileSystemStorageService implements StorageService {
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Autowired
+    private ListMapper listMapper;
+
+    @Autowired
+    private FileRepository fileRepository;
 
     private final Path rootLocation;
 //    private final Path rootLocation = Paths.get("uploads");
@@ -32,7 +45,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void store(MultipartFile file) {
+    public File store(MultipartFile file) {
         try {
             Files.createDirectories(rootLocation);
 
@@ -50,8 +63,14 @@ public class FileSystemStorageService implements StorageService {
                         "Cannot store file outside current directory.");
             }
             try (InputStream inputStream = file.getInputStream()) {
+                StoreFileDTO storeFileDTO = new StoreFileDTO();
+                storeFileDTO.setFileName(file.getOriginalFilename());
+                storeFileDTO.setFileSize((int) file.getSize());
+                storeFileDTO.setDownloadUrl(String.valueOf(file.getResource()));
+                File file1 = modelMapper.map(storeFileDTO, File.class);
                 Files.copy(inputStream, destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
+                return fileRepository.saveAndFlush(file1);
             }
         }
         catch (IOException e) {
