@@ -67,6 +67,7 @@ public class EventService {
         Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
         String userEmail = getUserEmail(getRequestAccessToken(request));
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
+        System.out.println(event);
         if(userDetails != null){
             Optional<User> user = userRepository.findByUserEmail(userEmail);
             List<Integer> eventCategoryIdByOwner = ecRepo.findEventCategoryIdByOwner(user.get().getId());
@@ -110,8 +111,12 @@ public class EventService {
         event.setEventDuration(ec.getEventDuration());
         event.setEventCategory(ec);
 //        fileSystemStorageService.store(file);
-        File file1 = sendFile(file);
-        event.setFile(file1);
+        sendFile(file);
+        if(!file.isEmpty()){
+            event.setFileName(file.getOriginalFilename());
+        }else {
+            event.setFileName(null);
+        }
         validateOverlap(event);
         Event createEvent = repository.saveAndFlush(event);
         StringBuilder stringBuilder = new StringBuilder();
@@ -132,15 +137,14 @@ public class EventService {
         return repository.saveAndFlush(event);
  }
 
-    public File sendFile(MultipartFile multipartFile){
+    public void sendFile(MultipartFile multipartFile){
+        if (multipartFile != null){
         try {
-            if (multipartFile != null){
                 fileSystemStorageService.store(multipartFile);
-            }
+
         }catch (Exception e){
             System.out.println(e);
-        }
-        return null;
+        }}
     }
 
     private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent) {

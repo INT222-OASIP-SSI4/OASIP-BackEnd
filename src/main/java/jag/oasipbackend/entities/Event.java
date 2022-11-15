@@ -30,16 +30,15 @@ public class Event {
     @JoinColumn(name = "eventCategoryId", nullable = false)
     private EventCategory eventCategory;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "fileId", nullable = false)
-    private File file;
+    @Column(name = "fileName")
+    private String fileName;
 
-    public File getFile() {
-        return file;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFile(File file) {
-        this.file = file;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public EventCategory getEventCategory() {
