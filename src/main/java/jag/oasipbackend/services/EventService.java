@@ -111,7 +111,7 @@ public class EventService {
         event.setEventDuration(ec.getEventDuration());
         event.setEventCategory(ec);
 //        fileSystemStorageService.store(file);
-        if(!file.isEmpty()){
+        if(file != null || !file.isEmpty()){
             sendFile(file);
             event.setFileName(file.getOriginalFilename());
         }else {
