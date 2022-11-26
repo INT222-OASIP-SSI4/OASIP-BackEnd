@@ -50,9 +50,9 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    public ResponseEntity<Event> updateEvent(@Valid @RequestBody UpdateEventDTO updateEventDTO,
-                                             @PathVariable Integer eventId, HttpServletRequest httpServletRequest) {
-        Event event = service.update(updateEventDTO, eventId, httpServletRequest);
+    public ResponseEntity<Event> updateEvent(@Valid @RequestPart(value = "event",required = false) UpdateEventDTO updateEventDTO,
+                                             @PathVariable Integer eventId, @RequestPart(value = "file",required = false) MultipartFile file, HttpServletRequest httpServletRequest) {
+        Event event = service.update(updateEventDTO, eventId, httpServletRequest, file);
         return new ResponseEntity<>(event, HttpStatus.OK);
     }
 

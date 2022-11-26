@@ -111,14 +111,14 @@ public class EventService {
         event.setEventDuration(ec.getEventDuration());
         event.setEventCategory(ec);
 //        fileSystemStorageService.store(file);
+        validateOverlap(event);
+        Event createEvent = repository.saveAndFlush(event);
         if(file != null){
-            sendFile(file);
+            sendFile(file, createEvent.getId());
             event.setFileName(file.getOriginalFilename());
         }else {
             event.setFileName(null);
         }
-        validateOverlap(event);
-        Event createEvent = repository.saveAndFlush(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Hi " + createEvent.getBookingEmail() + ". Your event has been created.\n\n");
         stringBuilder.append("Event Detail \n");
@@ -137,17 +137,22 @@ public class EventService {
         return repository.saveAndFlush(event);
  }
 
-    public void sendFile(MultipartFile multipartFile){
+    public void sendFile(MultipartFile multipartFile,Integer id){
         if (multipartFile != null){
         try {
-                fileSystemStorageService.store(multipartFile);
+                fileSystemStorageService.storeFile(multipartFile, id);
 
         }catch (Exception e){
             System.out.println(e);
         }}
     }
 
-    private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent) {
+    private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent, MultipartFile multipartFile) {
+        if (multipartFile != null) {
+            fileSystemStorageService.deleteFile(existingEvent.getId());
+            sendFile(multipartFile, existingEvent.getId());
+            existingEvent.setFileName(multipartFile.getOriginalFilename());
+        }
         if (updateEvent.getEventStartTime() != null)
             existingEvent.setEventStartTime(updateEvent.getEventStartTime());
         if (updateEvent.getEventNotes() != null)
@@ -155,7 +160,7 @@ public class EventService {
         return existingEvent;
     }
 
-    public Event update(UpdateEventDTO updateEventDTO, Integer eventId, HttpServletRequest request) {
+    public Event update(UpdateEventDTO updateEventDTO, Integer eventId, HttpServletRequest request, MultipartFile multipartFile) {
         Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
         String userEmail = getUserEmail(getRequestAccessToken(request));
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
@@ -176,7 +181,7 @@ public class EventService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
         }
 
-        Event updatedEvent = mapEvent(event, updateEventDTO);
+        Event updatedEvent = mapEvent(event, updateEventDTO, multipartFile);
         validateOverlap(updatedEvent);
         return repository.saveAndFlush(updatedEvent);
     }
@@ -195,6 +200,7 @@ public class EventService {
             } else {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please Sign in again");
             }
+        fileSystemStorageService.deleteFile(eventId);
         repository.deleteById(eventId);
     }
 
