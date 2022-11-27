@@ -11,6 +11,7 @@ import jag.oasipbackend.repositories.UserCategoryRepository;
 import jag.oasipbackend.repositories.UserRepository;
 import jag.oasipbackend.storage.FileSystemStorageService;
 import jag.oasipbackend.utils.ListMapper;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -21,6 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -148,15 +153,75 @@ public class EventService {
     }
 
     private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent, MultipartFile multipartFile) {
-        if (multipartFile != null) {
-            fileSystemStorageService.deleteFile(existingEvent.getId());
-            sendFile(multipartFile, existingEvent.getId());
-            existingEvent.setFileName(multipartFile.getOriginalFilename());
-        }
+//        if (multipartFile != null) {
+//            fileSystemStorageService.deleteFile(existingEvent.getId());
+//            sendFile(multipartFile, existingEvent.getId());
+//            existingEvent.setFileName(multipartFile.getOriginalFilename());
+//        }
+        Path getPath = fileSystemStorageService.getPath(existingEvent.getId());
+        File directoryPath = new File(getPath.toString());
+
+        File[] files = directoryPath.listFiles();
         if (updateEvent.getEventStartTime() != null)
             existingEvent.setEventStartTime(updateEvent.getEventStartTime());
         if (updateEvent.getEventNotes() != null)
             existingEvent.setEventNotes(updateEvent.getEventNotes());
+        if(multipartFile == null && directoryPath.isDirectory() == false && updateEvent.isFileDelete()==false) {
+            existingEvent.setFileName(existingEvent.getFileName());
+        }
+
+        if(updateEvent.isFileDelete()==true){
+            if(directoryPath.isDirectory() == true)
+                fileSystemStorageService.deleteFile(existingEvent.getId());
+            existingEvent.setFileName("null");
+        }
+
+        try{
+
+            if (directoryPath.isDirectory() == true) {
+                System.out.println("directoryPath.isDirectory() == true 245");
+                if (multipartFile == null) {
+                    existingEvent.setFileName(existingEvent.getFileName());
+                    System.out.println(updateEvent.isFileDelete());
+                    System.out.println("if multipartFile == null 248");
+                } else {
+                    System.out.println("else 251");
+                    directoryPath.isDirectory();
+                    System.out.println("directory: " + directoryPath.isDirectory());
+                    String fileName = null;
+                    for (File file1 : files) {
+                        if (file1.isFile()) {
+                            fileName = file1.getName();
+                        }
+                    }
+                    System.out.println("same file: " + fileName);
+                    System.out.println("current file: " + multipartFile.getOriginalFilename());
+                    System.out.println("check same file: " + multipartFile.getOriginalFilename().equals(fileName));
+                    if (multipartFile.getOriginalFilename().isEmpty()) {
+                        System.out.println("multipartFile.getOriginalFilename().isEmpty() 264");
+                        System.out.println("Equal file name");
+                    } else {
+                        System.out.println("No equal file name");
+                        if (Files.exists(Path.of(getPath.toString()))) {
+                            FileUtils.cleanDirectory(new File(getPath.toString()));
+                            System.out.println("have file");
+                            fileSystemStorageService.storeFile(multipartFile, existingEvent.getId());
+                            existingEvent.setFileName(multipartFile.getOriginalFilename());
+                        }
+                        fileSystemStorageService.storeFile(multipartFile, existingEvent.getId());
+                        existingEvent.setFileName(multipartFile.getOriginalFilename());
+                    }
+                }
+            } else {
+                if(multipartFile == null && updateEvent.isFileDelete()==true)
+                {
+                    existingEvent.setFileName("null");
+                } else{
+                    Files.createDirectories(directoryPath.toPath());
+                    fileSystemStorageService.storeFile(multipartFile, existingEvent.getId());
+                    existingEvent.setFileName(multipartFile.getOriginalFilename());
+                }
+            }}catch(IOException e){new ResponseStatusException(HttpStatus.BAD_REQUEST,"IOEXCEPTION was catch during update");}
         return existingEvent;
     }
 

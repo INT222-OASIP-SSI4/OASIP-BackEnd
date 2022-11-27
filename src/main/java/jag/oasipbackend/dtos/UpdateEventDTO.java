@@ -21,4 +21,6 @@ public class UpdateEventDTO {
     @Size(min = 0, max = 500, message = "eventNotes must have length between 0-500")
     private String eventNotes;
 
+    private boolean fileDelete;
+
 }
