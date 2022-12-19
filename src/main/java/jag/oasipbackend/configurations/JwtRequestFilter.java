@@ -25,29 +25,24 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.security.core.userdetails.User;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-
-    private String secret;
 
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    public String secret;
 
     @Value("${jwt.secret}")
     public void setSecret(String secret) {
@@ -79,7 +74,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 String requestURL = request.getRequestURL().toString();
                 System.out.println(requestURL);
                 if(requestURL.contains("refresh")){
-                    request.setAttribute("Errors", "Refresh token was expired. Please make a new signin request");
+                    request.setAttribute("Errors", "Refresh token was expired. Please make a new sign-in request");
                 }else{
                     request.setAttribute("Errors", e.getMessage());
                 }
