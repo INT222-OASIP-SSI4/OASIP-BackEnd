@@ -111,7 +111,6 @@ public class UserController {
         return service.userLogin(userMatchDTO, httpServletResponse, request);
     }
 
-    @CrossOrigin(origins = "*")
     @RequestMapping(value = "/loginms", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationTokenMS(@RequestBody String MsJwtToken) throws Exception {
         System.out.println("loginmsstart :");
