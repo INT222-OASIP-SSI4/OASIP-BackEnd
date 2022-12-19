@@ -108,7 +108,7 @@ public class UserController {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity userLogin(@Valid @RequestBody UserLoginDTO userMatchDTO, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception{
-        return service.userLogin(userMatchDTO, httpServletResponse, request);
+        return service.login(userMatchDTO, httpServletResponse, request);
     }
 
     @RequestMapping(value = "/loginms", method = RequestMethod.POST)

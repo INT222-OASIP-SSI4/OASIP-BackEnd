@@ -1,5 +1,6 @@
 package jag.oasipbackend.services;
 
+import jag.oasipbackend.configurations.JwtRequestFilter;
 import jag.oasipbackend.configurations.JwtTokenUtil;
 import jag.oasipbackend.dtos.CreateEventDTO;
 import jag.oasipbackend.dtos.EventDTO;
@@ -63,6 +64,9 @@ public class EventService {
     @Autowired
     private UserCategoryRepository userCategoryRepository;
 
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+
     public List<EventDTO> findAll() {
         List<Event> events = repository.findAll(Sort.by(Sort.Direction.DESC, "eventStartTime"));
         return listMapper.mapList(events, EventDTO.class, modelMapper);
@@ -70,7 +74,7 @@ public class EventService {
 
     public EventDTO findById(Integer eventId, HttpServletRequest request) {
         Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
-        String userEmail = getUserEmail(getRequestAccessToken(request));
+        String userEmail = getUserEmail(jwtRequestFilter.getJwtToken());
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
         System.out.println(event);
         if(userDetails != null){
@@ -216,7 +220,7 @@ public class EventService {
 
     public Event update(UpdateEventDTO updateEventDTO, Integer eventId, HttpServletRequest request, MultipartFile multipartFile) {
         Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
-        String userEmail = getUserEmail(getRequestAccessToken(request));
+        String userEmail = getUserEmail(jwtRequestFilter.getJwtToken());
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
         if(userDetails != null){
             Optional<User> user = userRepository.findByUserEmail(userEmail);
@@ -242,7 +246,7 @@ public class EventService {
 
     public void delete(Integer eventId, HttpServletRequest request) {
         Event event = repository.findById(eventId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, eventId + " does not exist !!!"));
-        String getUserEmail = getUserEmail(getRequestAccessToken(request));
+        String getUserEmail = getUserEmail(jwtRequestFilter.getJwtToken());
         Optional<User> user = userRepository.findByUserEmail(getUserEmail);
             if(user.isPresent()) {
                 if((request.isUserInRole("ROLE_student")) && !event.getBookingEmail().equals(user.get().getUserEmail())) {
@@ -260,7 +264,7 @@ public class EventService {
 
     public List<EventDTO> findAllEvent(HttpServletRequest request) {
 
-        String userEmail = getUserEmail(getRequestAccessToken(request));
+        String userEmail = getUserEmail(jwtRequestFilter.getJwtToken());
         UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(userEmail);
         if (userDetails != null) {
             Optional<User> user = userRepository.findByUserEmail(userEmail);

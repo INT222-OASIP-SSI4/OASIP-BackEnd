@@ -23,8 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.time.Instant;
 import java.util.*;
 
@@ -142,6 +142,42 @@ public class UserService {
                 status = HttpStatus.UNAUTHORIZED.toString();
 //            }
 
+            }
+        }else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email DOES NOT exist");
+        }
+
+        ResponseErrorHandler errors = new ResponseErrorHandler(
+                Date.from(Instant.now()),
+                httpServletResponse.getStatus(),
+                status,
+                errorMap.get("message"),
+                request.getRequest().getRequestURI());
+        return ResponseEntity.status(httpServletResponse.getStatus()).body(errors);
+
+    }
+
+    public ResponseEntity login(@Valid UserLoginDTO userLogin, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception {
+        Map<String, String> errorMap = new HashMap<>();
+        String status;
+
+        if (userRepository.existsByUserEmail(userLogin.getUserEmail())) {
+            Optional<User> user = userRepository.findByUserEmail(userLogin.getUserEmail());
+            if (argon2.matches(userLogin.getPassword(), user.get().getPassword())) {
+                authenticate(userLogin.getUserEmail(), userLogin.getPassword());
+                authenticate(userLogin.getUserEmail(), userLogin.getPassword());
+
+                final UserDetails userDetails = userDetailsService
+                        .loadUserByUsername(userLogin.getUserEmail());
+
+                final String token = jwtTokenUtil.generateToken(userDetails);
+                final String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+
+                return ResponseEntity.ok(new JwtResponse("Login Success",token,refreshToken));
+            } else {
+                errorMap.put("message", "Password NOT Matched");
+                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                status = HttpStatus.UNAUTHORIZED.toString();
             }
         }else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email DOES NOT exist");

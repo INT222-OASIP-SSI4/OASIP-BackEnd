@@ -2,8 +2,9 @@ package jag.oasipbackend.configurations;
 
 import io.jsonwebtoken.*;
 
+import jag.oasipbackend.entities.User;
 import jag.oasipbackend.enums.RoleType;
-import jag.oasipbackend.models.JwtResponse;
+import jag.oasipbackend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -30,6 +31,9 @@ public class JwtTokenUtil implements Serializable {
 
     @Value("${jwt.secret}")
     private String secret;
+
+    @Autowired
+    UserRepository userRepository;
 
 
     //retrieve username from jwt token
@@ -61,7 +65,9 @@ public class JwtTokenUtil implements Serializable {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         final String authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+        Optional<User> user = userRepository.findByUserEmail(userDetails.getUsername());
         claims.put("Roles", authorities);
+        claims.put("UserName",user.get().getUserName());
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
@@ -82,9 +88,8 @@ public class JwtTokenUtil implements Serializable {
     //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
     //   compaction of the JWT to a URL-safe string
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+        return Jwts.builder().setClaims(claims).setIssuer("https://intproj21.sit.kmutt.ac.th/or2/").setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000)) //set expire กำหนดอายุ token หน่วยมิลลิ
                 .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
