@@ -94,19 +94,13 @@ public class EventService {
     }
 
     public Event save(CreateEventDTO createEventDTO, MultipartFile file, HttpServletRequest request) {
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        UserDetails userDetails = (UserDetails) principal;
-//        String userEmail = userDetails.getUsername();
-//        Optional<User> user = userRepository.findByUserEmail(userEmail);
+
                 if((request.isUserInRole("ROLE_student"))) {
                     String userEmail = getEmailFromToken(request);
                     if(!createEventDTO.getBookingEmail().equals(userEmail)) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "booking email must be the same as the student's email.");
                     }
                 }
-//                if((user.get().getRole().equals(RoleType.lecturer.name()))) {
-//                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only student, admin can delete event");
-//                }
 
         Event event = modelMapper.map(createEventDTO, Event.class);
         EventCategory ec = ecRepo.findById(createEventDTO.getEventCategoryId()).orElseThrow(
@@ -153,11 +147,6 @@ public class EventService {
     }
 
     private Event mapEvent(Event existingEvent, UpdateEventDTO updateEvent, MultipartFile multipartFile) {
-//        if (multipartFile != null) {
-//            fileSystemStorageService.deleteFile(existingEvent.getId());
-//            sendFile(multipartFile, existingEvent.getId());
-//            existingEvent.setFileName(multipartFile.getOriginalFilename());
-//        }
         Path getPath = fileSystemStorageService.getPath(existingEvent.getId());
         File directoryPath = new File(getPath.toString());
 

@@ -1,5 +1,6 @@
 package jag.oasipbackend.services;
 
+import io.jsonwebtoken.Claims;
 import jag.oasipbackend.configurations.JwtTokenUtil;
 import jag.oasipbackend.dtos.*;
 import jag.oasipbackend.entities.User;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.*;
@@ -48,10 +50,6 @@ public class UserService {
 
     @Autowired
     public UserRepository userRepository;
-
-    @Autowired
-    private Argon2PasswordEncoder argon2PasswordEncoder;
-
 
     private Argon2PasswordEncoder argon2 = new Argon2PasswordEncoder(8,14,1,65536,10);
 
@@ -119,19 +117,6 @@ public class UserService {
         repository.deleteById(userId);
     }
 
-//    public UserMatchDTO checkMatch(UserMatchDTO userMatchCheck){
-//        if(repository.existsByUserEmail(userMatchCheck.getUserEmail())) {
-//            Optional<User> user = repository.findByUserEmail(userMatchCheck.getUserEmail());
-//            if(argon2.matches(userMatchCheck.getPassword(), user.get().getPassword())){
-//                throw new ResponseStatusException(HttpStatus.OK, "Password is Match");
-//            }else {
-//                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Password doesn't Match");
-//            }
-//        } else {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "A user with the specified email doesn't exist");
-//        }
-//    }
-
     public ResponseEntity userLogin(UserLoginDTO userMatchCheck, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception {
         Map<String, String> errorMap = new HashMap<>();
         String status;
@@ -170,6 +155,14 @@ public class UserService {
                 request.getRequest().getRequestURI());
         return ResponseEntity.status(httpServletResponse.getStatus()).body(errors);
 
+    }
+
+    public Map<String, Object> getMapFromIoJsonwebtokenClaims(Claims claims) {
+        Map<String, Object> expectedMap = new HashMap<String, Object>();
+        for (Map.Entry<String, Object> entry : claims.entrySet()) {
+            expectedMap.put(entry.getKey(), entry.getValue());
+        }
+        return expectedMap;
     }
 
     private void authenticate(String email,String password)throws Exception{

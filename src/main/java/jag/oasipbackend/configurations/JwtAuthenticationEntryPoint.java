@@ -22,30 +22,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
 
-    private static final long serialVersionUID = -7858869558953243875L;
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint.class);
-    private ZonedDateTime date;
-
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException, ServletException {
+                         AuthenticationException authException) throws IOException {
+        String errorMsg = (String) request.getAttribute("message");
+        response.reset();
+        response.resetBuffer();
+        System.out.println(errorMsg);
 
-        logger.error("Unauthorized error: {}", authException.getMessage());
-        final Map<String, Object> errors = new LinkedHashMap<>();
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,errorMsg);
 
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.flushBuffer();
 
-        errors.put("timestamp", ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-        errors.put("status", response.getStatus());
-        errors.put("error", "UNAUTHORIZED");
-        errors.put("message", request.getAttribute("Errors"));
-
-        try{
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), errors);
-        }catch (Exception e){
-            throw new ServletException();
-        }
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -36,12 +37,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // configure AuthenticationManager so that it knows from where to load
         // user for matching credentials
         // Use BCryptPasswordEncoder
-        auth.userDetailsService(jwtUserDetailsService).passwordEncoder(argon2PasswordEncoder());
+        auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
     }
 
     @Bean
-    public Argon2PasswordEncoder argon2PasswordEncoder() {
-        return new Argon2PasswordEncoder(8,14,1,65536,10);
+    public PasswordEncoder passwordEncoder() {
+        return new Argon2PasswordEncoder(16,32,1,4096,3);
     }
 
     @Bean
@@ -62,14 +63,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
                 .antMatchers("/api/users/login").permitAll()
-                .antMatchers("/api/users/register").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/events").permitAll()
+                .antMatchers("/api/users/loginms").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/users/register").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/files/upload").permitAll()
                 .antMatchers("/api/files/**").permitAll()
                 .antMatchers("/api/eventcategories/**").permitAll()
                 .antMatchers("/api/events/validate").permitAll()
-                .antMatchers("/api/users/**","/api/match/**").hasRole("admin")
+                .antMatchers(HttpMethod.GET, "/api/users/","/api/match/**").hasRole("admin")
+                .antMatchers(HttpMethod.GET, "/api/users/","/api/match/**").hasRole("admin")
+                .antMatchers(HttpMethod.DELETE, "/api/users/","/api/match/**").hasRole("admin")
                 .antMatchers(HttpMethod.GET, "/api/events","/api/events/{eventId}").hasAnyRole("admin","student","lecturer")
+                .antMatchers(HttpMethod.POST, "/api/events").hasAnyRole("admin","student")
                 .antMatchers(HttpMethod.PUT, "/api/events/{eventId}").hasAnyRole("admin","student")
                 .antMatchers(HttpMethod.DELETE, "/api/events/{eventId}").hasAnyRole("admin","student")
                 .anyRequest().authenticated();

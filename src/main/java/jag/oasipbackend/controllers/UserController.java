@@ -1,5 +1,6 @@
 package jag.oasipbackend.controllers;
 
+import jag.oasipbackend.configurations.JwtRequestFilter;
 import jag.oasipbackend.configurations.JwtTokenUtil;
 import jag.oasipbackend.dtos.*;
 import jag.oasipbackend.entities.User;
@@ -9,6 +10,8 @@ import jag.oasipbackend.repositories.UserRepository;
 import jag.oasipbackend.responses.ResponseHandler;
 import jag.oasipbackend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -42,6 +46,9 @@ public class UserController {
 
     @Autowired
     public AuthenticationManager authenticationManager;
+
+    @Autowired
+    public JwtRequestFilter jwtRequestFilter;
 
     @GetMapping("")
     public List<UserDTO> getUsers() {
@@ -102,6 +109,36 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity userLogin(@Valid @RequestBody UserLoginDTO userMatchDTO, HttpServletResponse httpServletResponse, ServletWebRequest request) throws Exception{
         return service.userLogin(userMatchDTO, httpServletResponse, request);
+    }
+
+    @CrossOrigin(origins = "*")
+    @RequestMapping(value = "/loginms", method = RequestMethod.POST)
+    public ResponseEntity<?> createAuthenticationTokenMS(@RequestBody String MsJwtToken) throws Exception {
+        System.out.println("loginmsstart :");
+        System.out.println("MsJwtToken: " + MsJwtToken);
+        JSONObject payload = jwtRequestFilter.extractMSJwt(MsJwtToken);
+        System.out.println(payload.get("roles"));
+        String role = "";
+        String email = "";
+        String name = "";
+        HashMap<String, Object> claims = new HashMap<>();
+        try {
+//            role = payload.getString("roles").replaceAll("[^a-zA-Z]+", "");
+            role = payload.getString("roles").replaceAll("[^a-zA-Z]+", "");
+
+        } catch (JSONException ex) {
+            role = "guest";
+        }
+
+        email = payload.getString("preferred_username");
+        name = payload.getString("name");
+        final String token = jwtTokenUtil.doGenerateAccessToken(claims, email, role, name, 0);
+        final String token2 = jwtTokenUtil.doGenerateAccessToken(claims, email, role, name, 1);
+        HashMap<String, String> objectToResponse = new HashMap<String, String>();
+        objectToResponse.put("token", token);
+        objectToResponse.put("refreshtoken", token2);
+        return ResponseEntity.ok(objectToResponse);
+
     }
 
 }

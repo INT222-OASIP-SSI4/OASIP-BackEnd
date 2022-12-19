@@ -89,25 +89,14 @@ public class FileSystemStorageService implements StorageService {
 
                             Path destinationFile = this.rootLocation.resolve(Paths.get(Objects.requireNonNull(file.getOriginalFilename()))).normalize().toAbsolutePath();
 
-
-//            if (file.isEmpty()) {
-//                throw new StorageException("Failed to store empty file.");
-//            }
-
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
                 // This is a security check
                 throw new StorageException(
                         "Cannot store file outside current directory.");
             }
             try (InputStream inputStream = file.getInputStream()) {
-//                StoreFileDTO storeFileDTO = new StoreFileDTO();
-//                storeFileDTO.setFileName(file.getOriginalFilename());
-//                storeFileDTO.setFileSize((int) file.getSize());
-//                storeFileDTO.setDownloadUrl(String.valueOf(file.getResource()));
-//                File file1 = modelMapper.map(storeFileDTO, File.class);
                 Files.copy(inputStream, destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
-//                return fileRepository.saveAndFlush(file1);
             }
         }
         catch (IOException e) {

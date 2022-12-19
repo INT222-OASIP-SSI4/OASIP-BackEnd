@@ -1,17 +1,21 @@
 package jag.oasipbackend.configurations;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+
+import jag.oasipbackend.enums.RoleType;
+import jag.oasipbackend.models.JwtResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,6 +30,7 @@ public class JwtTokenUtil implements Serializable {
 
     @Value("${jwt.secret}")
     private String secret;
+
 
     //retrieve username from jwt token
     public String getUsernameFromToken(String token) {
@@ -84,8 +89,62 @@ public class JwtTokenUtil implements Serializable {
     }
 
     //validate token
+    public Boolean validateTokenFromMs(String token) {
+        try {
+            final String username = getUsernameFromToken(token);
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+            return true;
+        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
+            throw new BadCredentialsException("INVALID_CREDENTIALS", ex);
+        } catch (ExpiredJwtException ex) {
+            throw ex;
+        }
+    }
+
+    //validate token
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
+
+    public String doGenerateAccessToken(Map<String, Object> claims, String email, String role, String name, long time) {
+        if(time == 1){
+            time = JWT_TOKEN_VALIDITY;
+        } else {
+            time = JWT_REFRESHTOKEN_VALIDITY;
+        }
+
+        claims.put("name", name);
+        claims.put("role", role);
+        System.out.println(claims);
+        return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date(System.currentTimeMillis()))
+//                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000)) // 5 ชั่วโมง
+                .setExpiration(new Date(System.currentTimeMillis() + time)) // 30 นาที or 1 day
+                .signWith(SignatureAlgorithm.HS512, secret).compact();
+
+    }
+
+    public List<SimpleGrantedAuthority> getRolesFromToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+
+        List<SimpleGrantedAuthority> roles = null;
+
+        String role = claims.get("roles", String.class);
+
+        if (role != null) {
+            if (role.equals(RoleType.admin.name())) {
+                roles = Arrays.asList(new SimpleGrantedAuthority(RoleType.admin.name()));
+            } else if (role.equals(RoleType.student.name())) {
+                roles = Arrays.asList(new SimpleGrantedAuthority(RoleType.student.name()));
+            } else if (role.equals(RoleType.lecturer.name())) {
+                roles = Arrays.asList(new SimpleGrantedAuthority(RoleType.lecturer.name()));
+            } else if (role.equals("Guest")) {
+                roles = Arrays.asList(new SimpleGrantedAuthority("Guest"));
+            }
+
+        }
+        return roles;
+
+    }
+
 }
