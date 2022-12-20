@@ -88,7 +88,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                         setJwtToken(jwtTokenUtil.generateToken(getUserDetails()));
                     }
 
-                }else if (StringUtils.hasText(getJwtToken()) == true && payload.getString("iss").equals("https://intproj21.sit.kmutt.ac.th/or2/")) {
+                }else if (StringUtils.hasText(getJwtToken()) == true && payload.getString("iss").equals("https://intproj21.sit.kmutt.ac.th/ssi4/")) {
                     username = payload.getString("sub");
                     setUserDetails(this.jwtUserDetailsService.loadUserByUsername(username));
                 }
