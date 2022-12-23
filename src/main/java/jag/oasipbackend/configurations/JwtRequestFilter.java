@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -67,6 +68,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
+
+        if (getJwtToken() == null &&
+                (request.getMethod().equals(HttpMethod.GET.toString()) &&
+                        (request.getRequestURL().toString().contains("events") ||
+                                request.getRequestURL().toString().contains("eventcategorys")))) {
+            List<SimpleGrantedAuthority> role = Arrays.asList(new SimpleGrantedAuthority("Guest"));
+            UserDetails userDetails = new User("guest", "", role);
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
+        }
 
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             setJwtToken(requestTokenHeader.substring(7));

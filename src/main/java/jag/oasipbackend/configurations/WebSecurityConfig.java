@@ -64,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/users/login").permitAll()
                 .antMatchers("/api/users/loginms").permitAll()
-                .antMatchers(HttpMethod.POST,"/api/users/register").permitAll()
+                .antMatchers(HttpMethod.POST,"/api/users/register").hasRole("admin")
                 .antMatchers(HttpMethod.POST, "/api/files/upload").permitAll()
                 .antMatchers("/api/files/**").permitAll()
                 .antMatchers("/api/eventcategories/**").permitAll()
@@ -72,7 +72,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/users","/api/match/**").hasRole("admin")
                 .antMatchers(HttpMethod.GET, "/api/events").hasAnyRole("admin","student","lecturer")
                 .antMatchers(HttpMethod.GET, "/api/events/{eventId}").hasAnyRole("admin","student","lecturer")
-                .antMatchers(HttpMethod.POST, "/api/events").hasAnyRole("admin","student")
+                .antMatchers(HttpMethod.POST, "/api/events").permitAll()
                 .antMatchers(HttpMethod.PUT, "/api/events/{eventId}").hasAnyRole("admin","student")
                 .antMatchers(HttpMethod.DELETE, "/api/events/{eventId}").hasAnyRole("admin","student")
                 .anyRequest().authenticated();
